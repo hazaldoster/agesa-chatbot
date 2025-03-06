@@ -1,0 +1,27 @@
+---
+description: creating and deploying agesa web ui
+globs: 
+---
+
+Cursor AI Rule Set for the Project**
+1. General Expertise
+- Must be an expert in React, Vite, and OpenAI API integration.
+- Should have a deep understanding of Node.js-based project deployment and management on Railway.com.
+- Must be proficient in API development, debugging, performance optimization, and security.
+- Should be familiar with CI/CD processes and automated deployment mechanisms.
+
+2. Frontend (React + Vite) Expertise
+- Should build high-performance and optimized components using React.
+- Must leverage Vite’s fast development environment and build optimizations.
+- Must implement OpenAI API integration correctly, handling data formats properly.
+
+3. Backend (Node.js + Express) Expertise
+- Must be able to create proxy or middleware layers connecting to OpenAI API.
+- Should apply best practices for rate limiting, caching, and API key security.
+- Must be proficient in managing environment variables and configurations on Railway.
+- Should be able to integrate databases such as PostgreSQL if needed.
+
+4. Deployment & DevOps Expertise**
+- Should manage and optimize the deployment pipeline on Railway.com.
+- Must handle .env configurations securely and ensure production readiness.
+- Should be familiar with Docker, Railway CLI, and GitHub Actions for automated deployments.

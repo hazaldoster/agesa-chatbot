@@ -31,7 +31,6 @@ class OpenAIService {
         await this.createThread();
       }
 
-      // Add the user message to the thread
       await this.openai.beta.threads.messages.create(
         this.threadId!,
         {
@@ -40,7 +39,6 @@ class OpenAIService {
         }
       );
 
-      // Run the assistant
       const run = await this.openai.beta.threads.runs.create(
         this.threadId!,
         {
@@ -48,7 +46,6 @@ class OpenAIService {
         }
       );
 
-      // Poll for the run completion
       let runStatus = await this.openai.beta.threads.runs.retrieve(
         this.threadId!,
         run.id
@@ -66,12 +63,10 @@ class OpenAIService {
         throw new Error('Assistant run failed');
       }
 
-      // Get the messages from the thread
       const messages = await this.openai.beta.threads.messages.list(
         this.threadId!
       );
 
-      // Return the latest assistant message
       const assistantMessages = messages.data
         .filter((msg: any) => msg.role === 'assistant')
         .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -86,7 +81,7 @@ class OpenAIService {
           id: latestMessage.id,
           role: 'assistant' as const,
           content,
-          timestamp: new Date(latestMessage.created_at),
+          timestamp: new Date(),
         };
       }
 

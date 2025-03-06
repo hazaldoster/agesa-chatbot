@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
 import { Message } from '../../types';
 import OpenAIService from '../../services/openai';
 
-const ChatContainer = styled.div`
+interface ChatContainerProps {
+  boxed?: boolean;
+}
+
+const ChatContainer = styled.div<ChatContainerProps>`
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: ${props => props.boxed ? '1080px' : '100vh'};
   width: 100%;
   margin: 0;
   background-color: #fff;
@@ -15,8 +19,8 @@ const ChatContainer = styled.div`
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   overflow: hidden;
 `;
 
@@ -27,6 +31,8 @@ const ChatHeader = styled.div`
   background-color: #333;
   color: white;
   border-bottom: none;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 `;
 
 const ChatHeaderAvatar = styled.div`
@@ -77,7 +83,7 @@ const MessagesContainer = styled.div`
   overflow-y: auto;
   padding: 20px;
   background-color: rgba(245, 247, 251, 0.7);
-  height: calc(100vh - 130px);
+  height: calc(100% - 130px);
   border: none;
 `;
 
@@ -103,7 +109,7 @@ const MessageBubble = styled.div<MessageBubbleProps>`
   background-color: ${props => (props.isUser ? '#0084ff' : 'rgba(255, 255, 255, 0.9)')};
   color: ${props => (props.isUser ? 'white' : '#333')};
   margin-bottom: 2px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, ${props => (props.isUser ? '0.15' : '0.1')});
   word-wrap: break-word;
   font-size: 16px;
   line-height: 1.5;
@@ -134,8 +140,11 @@ const InputContainer = styled.div`
   display: flex;
   align-items: center;
   padding: 15px;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.9);
   border-top: none;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 `;
 
 const InputWrapper = styled.div`
@@ -147,10 +156,11 @@ const InputWrapper = styled.div`
   border-radius: 24px;
   background-color: rgba(245, 245, 245, 0.9);
   padding: 0 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   
   &:focus-within {
     border: none;
-    box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
+    box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 `;
 
@@ -275,80 +285,60 @@ interface ChatProps {
   apiKey: string;
   assistantId: string;
   onBack?: () => void;
+  boxed?: boolean;
+  initialMessages?: Message[];
+  initialQuestion?: string;
 }
 
-const Chat: React.FC<ChatProps> = ({ apiKey, assistantId, onBack }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+const Chat: React.FC<ChatProps> = ({ 
+  apiKey, 
+  assistantId, 
+  onBack, 
+  boxed = false, 
+  initialMessages = [], 
+  initialQuestion = '' 
+}) => {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [openAIService, setOpenAIService] = useState<OpenAIService | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialQuestionSentRef = useRef(false);
 
-  useEffect(() => {
-    // Check if API credentials are provided
-    if (!apiKey || !assistantId) {
-      setConnectionError('API kimlik bilgileri eksik. Lütfen .env dosyanızı kontrol edin.');
-      return;
-    }
-
-    try {
-      // Initialize OpenAI service
-      const service = new OpenAIService({ apiKey, assistantId });
-      setOpenAIService(service);
+  const handleSendMessage = useCallback(async (messageText?: string) => {
+    const textToSend = messageText || input;
+    if (!textToSend.trim() || !openAIService) return;
+    
+    if (!messageText) {
+      const userMessage: Message = {
+        id: uuidv4(),
+        role: 'user',
+        content: textToSend,
+        timestamp: new Date(),
+      };
       
-      // Add welcome message
-      setMessages([
-        {
-          id: uuidv4(),
-          role: 'assistant',
-          content: 'Merhaba! Size finansal konularda nasıl yardımcı olabilirim?',
-          timestamp: new Date(),
-        },
-      ]);
-    } catch (error) {
-      console.error('Error initializing OpenAI service:', error);
-      setConnectionError('OpenAI servisini başlatırken hata oluştu. Lütfen kimlik bilgilerinizi kontrol edin.');
+      setMessages(prev => [...prev, userMessage]);
     }
-  }, [apiKey, assistantId]);
-
-  useEffect(() => {
-    // Scroll to bottom when messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const handleSendMessage = async () => {
-    if (!input.trim() || !openAIService) return;
     
-    // Add user message
-    const userMessage: Message = {
-      id: uuidv4(),
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
     
     try {
-      // Send message to OpenAI
-      const response = await openAIService.sendMessage(input);
+      const response = await openAIService.sendMessage(textToSend);
       
       if (response) {
-        // Add assistant response
-        setMessages(prev => [...prev, response as Message]);
+        const assistantResponse = {
+          ...response,
+          timestamp: new Date() 
+        };
+        
+        setMessages(prev => [...prev, assistantResponse]);
       } else {
         throw new Error('No response received from assistant');
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Add error message
       setMessages(prev => [
         ...prev,
         {
@@ -361,6 +351,60 @@ const Chat: React.FC<ChatProps> = ({ apiKey, assistantId, onBack }) => {
     } finally {
       setIsLoading(false);
     }
+  }, [input, openAIService]);
+
+  useEffect(() => {
+    if (!apiKey || !assistantId) {
+      setConnectionError('API kimlik bilgileri eksik. Lütfen .env dosyanızı kontrol edin.');
+      return;
+    }
+
+    try {
+      const service = new OpenAIService({ apiKey, assistantId });
+      setOpenAIService(service);
+      
+      if (messages.length === 0) {
+        const welcomeMessageTime = new Date();
+        welcomeMessageTime.setMinutes(welcomeMessageTime.getMinutes() - 1);
+        
+        setMessages([
+          {
+            id: uuidv4(),
+            role: 'assistant',
+            content: ' Merhaba, Ben Finansal Terapistiniz. Aklınızda bir konu var mı?',
+            timestamp: welcomeMessageTime,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error initializing OpenAI service:', error);
+      setConnectionError('OpenAI servisini başlatırken hata oluştu. Lütfen kimlik bilgilerinizi kontrol edin.');
+    }
+  }, [apiKey, assistantId, messages.length]);
+
+  useEffect(() => {
+    if (initialQuestion && !initialQuestionSentRef.current && openAIService) {
+      initialQuestionSentRef.current = true;
+      setTimeout(() => {
+        handleSendMessage(initialQuestion);
+      }, 500);
+    }
+  }, [initialQuestion, openAIService, handleSendMessage]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const formatTime = (date: Date) => {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return ''; 
+    }
+    
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -369,7 +413,6 @@ const Chat: React.FC<ChatProps> = ({ apiKey, assistantId, onBack }) => {
     }
   };
 
-  // Group messages by sender
   const groupedMessages: { [key: string]: Message[] } = {};
   messages.forEach((message) => {
     const lastGroup = Object.keys(groupedMessages).pop();
@@ -381,7 +424,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, assistantId, onBack }) => {
   });
 
   return (
-    <ChatContainer>
+    <ChatContainer boxed={boxed}>
       <ChatHeader>
         {onBack && (
           <BackButton onClick={onBack}>
@@ -420,7 +463,9 @@ const Chat: React.FC<ChatProps> = ({ apiKey, assistantId, onBack }) => {
               </MessageBubble>
             ))}
             <MessageTime isUser={groupMessages[0].role === 'user'}>
-              {formatTime(groupMessages[groupMessages.length - 1].timestamp)}
+              {groupMessages[groupMessages.length - 1].timestamp ? 
+                formatTime(groupMessages[groupMessages.length - 1].timestamp) : 
+                ''}
             </MessageTime>
           </MessageGroup>
         ))}
@@ -448,7 +493,7 @@ const Chat: React.FC<ChatProps> = ({ apiKey, assistantId, onBack }) => {
           />
         </InputWrapper>
         <SendButton 
-          onClick={handleSendMessage} 
+          onClick={() => handleSendMessage()} 
           disabled={isLoading || !input.trim() || !!connectionError}
           aria-label="Send message"
         >
