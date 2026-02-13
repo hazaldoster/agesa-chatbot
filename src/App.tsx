@@ -18,25 +18,6 @@ const AppContainer = styled.div`
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Enhanced drop shadow */
 `;
 
-const WelcomeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 1080px;
-  height: 1080px;
-  margin: 0 auto; /* Center the container */
-  background-color: #f5f7fb;
-  background-image: radial-gradient(#e0e6f5 1px, transparent 1px), radial-gradient(#e0e6f5 1px, transparent 1px);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-  text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-  border-radius: 20px; /* Add corner radius */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Add drop shadow */
-`;
-
 const WelcomeCard = styled.div`
   background-color: white;
   border-radius: 20px;
@@ -49,36 +30,10 @@ const WelcomeCard = styled.div`
   align-items: center;
 `;
 
-const WelcomeLogo = styled.div`
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background-color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 30px;
-  overflow: hidden;
-`;
-
-const LogoImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
 const WelcomeTitle = styled.h1`
   font-size: 2.5rem;
   color: #333;
   margin-bottom: 15px;
-`;
-
-const WelcomeSubtitle = styled.p`
-  font-size: 1.2rem;
-  color: #666;
-  margin-bottom: 40px;
-  max-width: 600px;
-  line-height: 1.6;
 `;
 
 function App() {
