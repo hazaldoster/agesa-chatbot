@@ -11,7 +11,8 @@ export interface ChatState {
   error: string | null;
 }
 
-export interface OpenAIConfig {
+export interface GeminiConfig {
   apiKey: string;
-  assistantId: string;
+  modelName?: string;
+  systemInstruction?: string;
 }

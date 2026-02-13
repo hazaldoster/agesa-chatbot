@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
 import { v4 as uuidv4 } from 'uuid';
+import ReactMarkdown from 'react-markdown';
 import { Message } from '../../types';
-import OpenAIService from '../../services/openai';
+import GeminiService from '../../services/gemini';
 
 interface ChatContainerProps {
   boxed?: boolean;
@@ -112,7 +113,7 @@ const MessageBubble = styled.div<MessageBubbleProps>`
   box-shadow: 0 2px 8px rgba(0, 0, 0, ${props => (props.isUser ? '0.15' : '0.1')});
   word-wrap: break-word;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   
   &:first-child {
     border-top-left-radius: ${props => (props.isUser ? '18px' : '4px')};
@@ -122,6 +123,72 @@ const MessageBubble = styled.div<MessageBubbleProps>`
   &:last-child {
     border-bottom-left-radius: ${props => (props.isUser ? '18px' : '4px')};
     border-bottom-right-radius: ${props => (props.isUser ? '4px' : '18px')};
+  }
+
+  /* Markdown styling */
+  p {
+    margin: 0 0 12px 0;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  ul, ol {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 12px 0 8px 0;
+    font-weight: 600;
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 { font-size: 1.3em; }
+  h2 { font-size: 1.2em; }
+  h3 { font-size: 1.1em; }
+
+  code {
+    background-color: ${props => (props.isUser ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.08)')};
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background-color: ${props => (props.isUser ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)')};
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 8px 0;
+    
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid ${props => (props.isUser ? 'rgba(255,255,255,0.5)' : '#0084ff')};
+    margin: 8px 0;
+    padding-left: 12px;
+    font-style: italic;
+  }
+
+  a {
+    color: ${props => (props.isUser ? '#fff' : '#0084ff')};
+    text-decoration: underline;
   }
 `;
 
@@ -283,7 +350,6 @@ const BackButton = styled.button`
 
 interface ChatProps {
   apiKey: string;
-  assistantId: string;
   onBack?: () => void;
   boxed?: boolean;
   initialMessages?: Message[];
@@ -292,7 +358,6 @@ interface ChatProps {
 
 const Chat: React.FC<ChatProps> = ({ 
   apiKey, 
-  assistantId, 
   onBack, 
   boxed = false, 
   initialMessages = [], 
@@ -301,14 +366,14 @@ const Chat: React.FC<ChatProps> = ({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [openAIService, setOpenAIService] = useState<OpenAIService | null>(null);
+  const [geminiService, setGeminiService] = useState<GeminiService | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const initialQuestionSentRef = useRef(false);
 
   const handleSendMessage = useCallback(async (messageText?: string) => {
     const textToSend = messageText || input;
-    if (!textToSend.trim() || !openAIService) return;
+    if (!textToSend.trim() || !geminiService) return;
     
     if (!messageText) {
       const userMessage: Message = {
@@ -325,7 +390,7 @@ const Chat: React.FC<ChatProps> = ({
     setIsLoading(true);
     
     try {
-      const response = await openAIService.sendMessage(textToSend);
+      const response = await geminiService.sendMessage(textToSend);
       
       if (response) {
         const assistantResponse = {
@@ -351,17 +416,17 @@ const Chat: React.FC<ChatProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [input, openAIService]);
+  }, [input, geminiService]);
 
   useEffect(() => {
-    if (!apiKey || !assistantId) {
+    if (!apiKey) {
       setConnectionError('API kimlik bilgileri eksik. Lütfen .env dosyanızı kontrol edin.');
       return;
     }
 
     try {
-      const service = new OpenAIService({ apiKey, assistantId });
-      setOpenAIService(service);
+      const service = new GeminiService({ apiKey });
+      setGeminiService(service);
       
       if (messages.length === 0) {
         const welcomeMessageTime = new Date();
@@ -377,19 +442,19 @@ const Chat: React.FC<ChatProps> = ({
         ]);
       }
     } catch (error) {
-      console.error('Error initializing OpenAI service:', error);
-      setConnectionError('OpenAI servisini başlatırken hata oluştu. Lütfen kimlik bilgilerinizi kontrol edin.');
+      console.error('Error initializing Gemini service:', error);
+      setConnectionError('Gemini servisini başlatırken hata oluştu. Lütfen kimlik bilgilerinizi kontrol edin.');
     }
-  }, [apiKey, assistantId, messages.length]);
+  }, [apiKey, messages.length]);
 
   useEffect(() => {
-    if (initialQuestion && !initialQuestionSentRef.current && openAIService) {
+    if (initialQuestion && !initialQuestionSentRef.current && geminiService) {
       initialQuestionSentRef.current = true;
       setTimeout(() => {
         handleSendMessage(initialQuestion);
       }, 500);
     }
-  }, [initialQuestion, openAIService, handleSendMessage]);
+  }, [initialQuestion, geminiService, handleSendMessage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -459,7 +524,11 @@ const Chat: React.FC<ChatProps> = ({
                 key={message.id} 
                 isUser={message.role === 'user'}
               >
-                {message.content}
+                {message.role === 'user' ? (
+                  message.content
+                ) : (
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                )}
               </MessageBubble>
             ))}
             <MessageTime isUser={groupMessages[0].role === 'user'}>

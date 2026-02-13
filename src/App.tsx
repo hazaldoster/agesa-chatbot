@@ -86,11 +86,10 @@ function App() {
   const [userQuestion, setUserQuestion] = useState('');
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   
-  const apiKey = process.env.REACT_APP_OPENAI_API_KEY || '';
-  const assistantId = process.env.REACT_APP_ASSISTANT_ID || '';
+  const apiKey = process.env.REACT_APP_GEMINI_API_KEY || '';
 
-  if (!apiKey || !assistantId) {
-    console.error('Missing OpenAI API credentials. Please check your .env file.');
+  if (!apiKey) {
+    console.error('Missing Gemini API credentials. Please check your .env file.');
   }
 
   const handleStartChat = async (question: string) => {
@@ -133,7 +132,6 @@ function App() {
       <AppContainer>
         <Chat 
           apiKey={apiKey} 
-          assistantId={assistantId} 
           onBack={handleBackToWelcome}
           boxed={true}
           initialMessages={initialMessages}
