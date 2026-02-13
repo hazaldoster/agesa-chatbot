@@ -43,19 +43,6 @@ function App() {
   
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY || '';
 
-  // Debug: Log all REACT_APP env variables
-  console.log('=== Environment Debug ===');
-  console.log('REACT_APP_GEMINI_API_KEY exists:', !!process.env.REACT_APP_GEMINI_API_KEY);
-  console.log('REACT_APP_GEMINI_API_KEY length:', process.env.REACT_APP_GEMINI_API_KEY?.length || 0);
-  console.log('REACT_APP_GEMINI_API_KEY first 10 chars:', process.env.REACT_APP_GEMINI_API_KEY?.substring(0, 10) || 'EMPTY');
-  console.log('All env keys:', Object.keys(process.env).filter(k => k.startsWith('REACT_APP')));
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  console.log('=========================');
-
-  if (!apiKey) {
-    console.error('Missing Gemini API credentials. Please check your .env file.');
-  }
-
   const handleStartChat = async (question: string) => {
     if (!question.trim()) return;
     
