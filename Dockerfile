@@ -3,6 +3,10 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
+# Build argument for API key
+ARG REACT_APP_GEMINI_API_KEY
+ENV REACT_APP_GEMINI_API_KEY=$REACT_APP_GEMINI_API_KEY
+
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
@@ -11,6 +15,9 @@ RUN npm install
 
 # Copy the rest of the application
 COPY . .
+
+# Debug: Print env var (first 10 chars only for security)
+RUN echo "Building with REACT_APP_GEMINI_API_KEY: ${REACT_APP_GEMINI_API_KEY:0:10}..."
 
 # Build the application
 RUN npm run build
