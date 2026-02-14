@@ -12,7 +12,7 @@ interface ChatContainerProps {
 const ChatContainer = styled.div<ChatContainerProps>`
   display: flex;
   flex-direction: column;
-  height: ${props => props.boxed ? '1080px' : '100vh'};
+  height: ${props => props.boxed ? '100%' : '100vh'};
   width: 100%;
   margin: 0;
   background-color: #fff;
@@ -23,6 +23,13 @@ const ChatContainer = styled.div<ChatContainerProps>`
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   overflow: hidden;
+
+  @media (max-width: 1024px) {
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
 `;
 
 const ChatHeader = styled.div`
@@ -34,6 +41,16 @@ const ChatHeader = styled.div`
   border-bottom: none;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    border-radius: 0;
+    padding: 12px 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+  }
 `;
 
 const ChatHeaderAvatar = styled.div`
@@ -58,6 +75,10 @@ const ChatHeaderTitle = styled.h1`
   font-size: 1.3rem;
   margin: 0;
   font-weight: 500;
+
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
 `;
 
 const ChatHeaderStatus = styled.div`
@@ -75,6 +96,14 @@ const ChatHeaderStatus = styled.div`
     background-color: #4caf50;
     margin-right: 6px;
   }
+
+  @media (max-width: 480px) {
+    font-size: 0;
+    
+    &::before {
+      margin-right: 0;
+    }
+  }
 `;
 
 const MessagesContainer = styled.div`
@@ -84,8 +113,16 @@ const MessagesContainer = styled.div`
   overflow-y: auto;
   padding: 20px;
   background-color: rgba(245, 247, 251, 0.7);
-  height: calc(100% - 130px);
   border: none;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
 `;
 
 interface MessageGroupProps {
@@ -98,6 +135,14 @@ const MessageGroup = styled.div<MessageGroupProps>`
   margin-bottom: 15px;
   max-width: 80%;
   align-self: ${props => (props.isUser ? 'flex-end' : 'flex-start')};
+
+  @media (max-width: 768px) {
+    max-width: 90%;
+  }
+
+  @media (max-width: 480px) {
+    max-width: 95%;
+  }
 `;
 
 interface MessageBubbleProps {
@@ -112,6 +157,7 @@ const MessageBubble = styled.div<MessageBubbleProps>`
   margin-bottom: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, ${props => (props.isUser ? '0.15' : '0.1')});
   word-wrap: break-word;
+  overflow-wrap: break-word;
   font-size: 16px;
   line-height: 1.6;
   
@@ -123,6 +169,17 @@ const MessageBubble = styled.div<MessageBubbleProps>`
   &:last-child {
     border-bottom-left-radius: ${props => (props.isUser ? '18px' : '4px')};
     border-bottom-right-radius: ${props => (props.isUser ? '4px' : '18px')};
+  }
+
+  @media (max-width: 768px) {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 16px;
   }
 
   /* Markdown styling */
@@ -212,6 +269,18 @@ const InputContainer = styled.div`
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    border-radius: 0;
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
 `;
 
 const InputWrapper = styled.div`
@@ -247,9 +316,15 @@ const Input = styled.input`
   background-color: transparent;
   font-size: 16px;
   outline: none;
+  min-width: 0;
   
   &::placeholder {
     color: #888;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 10px 5px;
   }
 `;
 
@@ -262,11 +337,13 @@ const SendButton = styled.button`
   border-radius: 50%;
   width: 40px;
   height: 40px;
+  min-width: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background-color 0.2s;
+  flex-shrink: 0;
   
   &:hover {
     background-color: #0073e6;
@@ -280,6 +357,13 @@ const SendButton = styled.button`
   svg {
     width: 18px;
     height: 18px;
+  }
+
+  @media (max-width: 480px) {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    margin-left: 8px;
   }
 `;
 
@@ -330,6 +414,10 @@ const BotName = styled.span`
   font-weight: 500;
   margin-left: 8px;
   white-space: nowrap;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
 `;
 
 const BackButton = styled.button`
